@@ -4,9 +4,8 @@
    "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon server.js",
-    "build": "echo 'Build complete'",
-    "migrate": "npx sequelize-cli db:migrate"
+    "dev": "nodemon server.js"
+  
   },
   "keywords": [],
   "author": "",
