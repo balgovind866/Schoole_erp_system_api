@@ -1,14 +1,10 @@
 [build]
-  functions = "netlify/functions"
   command = "npm run build"
-  publish = "public"
-
-[functions]
-  node_bundler = "esbuild"
+  publish = "client/build"
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "https://your-render-api-url.onrender.com/api/:splat"
   status = 200
 
 [[redirects]]
