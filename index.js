@@ -1,18 +1,29 @@
+require('dotenv').config();
 const express = require('express');
-const app = express();
-const authUserRoutes = require('./routes/authUser');
 
+const { sequelize } = require('./models');
+const cors = require("cors");
+const schoolRoutes = require('./routes/authUser');
+const authRoutes = require('./routes/authUser');
+const app = express();
+
+app.use(cors());
 app.use(express.json());
 
-// Connect API route
-app.use('/api/users', authUserRoutes);
+//app.use('/schoole', schoolRoutes);
+app.use('/api/schoole', schoolRoutes);
+app.use('/auth', authRoutes);
 
-// Optional: Basic route
-app.get('/', (req, res) => {
-  res.send('Welcome to School Management API');
-});
-
+// Start server only after DB connection
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+sequelize.authenticate()
+  .then(() => {
+    console.log('Database connected...');
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch(err => {
+    console.error('Database connection failed:', err);
+  });
