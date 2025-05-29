@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const db = require('../models/auth_user');
+const db = require('../models');
 
 /**
  * Middleware to verify access token

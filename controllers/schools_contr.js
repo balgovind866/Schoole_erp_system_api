@@ -1,7 +1,8 @@
-const db = require("../models");
-const { get } = require("../routes/authUser");
-const {School,Session, } = db;
 
+const { get } = require("../routes/authUser");
+const db = require("../models");
+const School = db.SchoolAll; // Use the actual model name from your sequelize.define
+const Session = db.Session;
 
 const createSchool = async (req, res) => {
   console.log("getSchoolInfoByCode called with code:");
@@ -102,7 +103,6 @@ const createSession = async (req, res) => {
 
   module.exports = {
     createSchool,
-  
-  getSchoolByCode,
-  createSession,
+    getSchoolByCode,
+    createSession,
   }
