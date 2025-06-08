@@ -5,7 +5,8 @@ const controller = require("../controllers/schools_contr");
 const { verifyToken, isAdmin, isActiveUser } = require('../middleware/authentication');
 
 // Public routes
-router.post('/login', authController.handleUserLogin);
+router.post('/login', authController.loginTeacherOrStudent);
+router.post('/login/admin', authController.loginAdmin);
 router.post('/logout', authController.handleLogout);
 
 // First admin creation (only works when no admin exists)

@@ -276,10 +276,7 @@ const registerStudent = async (req, res) => {
     res.status(500).json({ message: 'Server error during student registration' });
   }
 };
-/**
- * Login Controller
- */
-const handleUserLogin = async (req, res) => {
+const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
 
   try {
@@ -291,31 +288,30 @@ const handleUserLogin = async (req, res) => {
       where: { 
         [db.Sequelize.Op.or]: [
           { username },
-          { email: username } // Allow login with email or username
-        ]
+          { email: username }
+        ],
+        role: ['admin'] // Only admin roles
       } 
     });
-    
+
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid admin credentials' });
     }
 
     if (!user.isActive) {
-      return res.status(401).json({ message: 'Account is disabled. Please contact an administrator.' });
+      return res.status(403).json({ message: 'Account is disabled. Contact an administrator.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Invalid admin credentials' });
     }
 
     const accessToken = generateAccessToken(user);
-    
-    // Update last login timestamp
     await user.update({ lastLogin: new Date() });
 
     res.status(200).json({
-      message: 'Login successful',
+      message: 'Admin login successful',
       user: {
         id: user.id,
         username: user.username,
@@ -325,11 +321,72 @@ const handleUserLogin = async (req, res) => {
       },
       accessToken
     });
+
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('Admin login error:', err);
+    res.status(500).json({ message: 'Server error during admin login' });
+  }
+};
+
+const loginTeacherOrStudent = async (req, res) => {
+  const { username, password, schoolId } = req.body;
+
+  try {
+    if (!username || !password || !schoolId) {
+      return res.status(400).json({ message: 'Username, password, and schoolId are required' });
+    }
+
+    const user = await AuthUser.findOne({ 
+      where: { 
+        [db.Sequelize.Op.or]: [
+          { username },
+          { email: username }
+        ],
+        schoolId,
+        role: ['teacher', 'student']
+      } 
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials or school ID' });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Account is disabled. Contact your school admin.' });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const accessToken = generateAccessToken(user);
+    await user.update({ lastLogin: new Date() });
+
+    // Get school details
+    const school = await db.SchoolAll.findOne({
+      where: { id: user.schoolId },
+      attributes: ['id', 'code', 'name', 'baseUrl', 'logoPath', 'bannerPath', 'paymentLink']
+    });
+    
+    const userData = user.toJSON();
+    delete userData.password;
+  
+    
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: userData,
+      school,
+      accessToken
+    });
+
+  } catch (err) {
+    console.error('Teacher/Student login error:', err);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
+
 
 /**
  * Logout Controller (client-side token removal)
@@ -401,7 +458,8 @@ module.exports = {
   createAdminAccount,
   registerTeacher,
   registerStudent,
-  handleUserLogin,
+  loginTeacherOrStudent,
+  loginAdmin,
   handleLogout,
   getAllUsers,
   toggleUserStatus
