@@ -5,6 +5,7 @@ const { sequelize } = require('./models');
 const cors = require("cors");
 const schoolRoutes = require('./routes/schools_rout');
 const authRoutes = require('./routes/authUser');
+const noticeRoutes=require('./routes/notices');
 const app = express();
 
 app.use(cors());
@@ -13,6 +14,7 @@ app.use(express.json());
 //app.use('/schoole', schoolRoutes);
 app.use('/api/schoole', schoolRoutes);
 app.use('/auth', authRoutes);
+app.use('/api',noticeRoutes);
 
 // Start server only after DB connection
 const PORT = process.env.PORT || 3000;
