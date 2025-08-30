@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     start: DataTypes.DATE,
     enddate: DataTypes.DATE,
-    isactive: DataTypes.BOOLEAN
+    isActive: DataTypes.BOOLEAN
   });
   
   Session.associate = (models) => {

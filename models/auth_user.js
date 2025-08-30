@@ -22,23 +22,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    // Maps to empname in Flutter
     fullName: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
-    // Maps to empcode in Flutter
     userCode: {
       type: DataTypes.STRING,
-      allowNull: true
-    },
-    address: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    joinDate: {
-      type: DataTypes.DATE,
-      allowNull: true
+      allowNull: true,
+      unique: true // For employee/student ID
     },
     dob: {
       type: DataTypes.DATE,
@@ -49,43 +40,24 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     gender: {
-      type: DataTypes.STRING,
+      type: DataTypes.ENUM('male', 'female', 'other'),
       allowNull: true
     },
-    maritalStatus: {
-      type: DataTypes.STRING,
+    address: {
+      type: DataTypes.TEXT,
       allowNull: true
     },
-    qualification: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    imgPath: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    aadhar: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    classInCharge: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    sectionId: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    appQrAutoAccept: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
+    
     schoolId: {
       type: DataTypes.INTEGER,
-      allowNull: true
+      allowNull: false,
+      references: {
+        model: 'schools',
+        key: 'id'
+      }
     },
     role: {
-      type: DataTypes.ENUM('admin', 'teacher', 'student'),
+      type: DataTypes.ENUM('admin', 'teacher', 'student', 'principal', 'staff'),
       defaultValue: 'student'
     },
     isActive: {
@@ -95,29 +67,46 @@ module.exports = (sequelize, DataTypes) => {
     lastLogin: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+   
+    // For staff only
+    joinDate: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    qualification: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     tableName: 'auth_users',
     timestamps: true
   });
 
-  // Define associations
   AuthUser.associate = (models) => {
     // Association with school
-    if (models.SchoolAll) {
-      AuthUser.belongsTo(models.SchoolAll, {
-        foreignKey: 'schoolId',
-        as: 'school'
-      });
-    }
-    
-    // Association with section if needed
-    if (models.Section) {
-      AuthUser.belongsTo(models.Section, {
-        foreignKey: 'sectionId',
-        as: 'section'
-      });
-    }
+    AuthUser.belongsTo(models.SchoolAll, {
+      foreignKey: 'schoolId',
+      as: 'school'
+    });
+
+    // Student enrollments (one user can have multiple enrollments across sessions)
+    AuthUser.hasMany(models.StudentEnrollment, {
+      foreignKey: 'studentId',
+      as: 'enrollments'
+    });
+
+    // Class teacher sections
+    AuthUser.hasMany(models.Section, {
+      foreignKey: 'classTeacherId',
+      as: 'classSections'
+    });
+
+    // Subject teaching assignments
+    AuthUser.hasMany(models.SectionSubjectTeacher, {
+      foreignKey: 'teacherId',
+      as: 'subjectAssignments'
+    });
   };
 
   return AuthUser;
