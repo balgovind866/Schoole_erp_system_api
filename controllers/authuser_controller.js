@@ -63,7 +63,7 @@ const createSuperAdmin = async (req, res) => {
       password: hashedPassword,
       fullName,
       role: "superadmin",
-      schoolId 
+ 
     });
 
     res.status(201).json({
