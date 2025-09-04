@@ -70,10 +70,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     StudentEnrollment.belongsTo(models.Session, {
-      foreignKey: 'sessionId',
-      as: 'session'
-    });
-
+  foreignKey: 'sessionId',
+  as: 'session'
+});
     StudentEnrollment.belongsTo(models.Class, {
       foreignKey: 'classId',
       as: 'class'
