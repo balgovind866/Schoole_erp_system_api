@@ -29,7 +29,7 @@ const generateAccessToken = (user) => {
 ////checking ke liye hai
 const createSuperAdmin = async (req, res) => {
   try {
-    const { username, email, password, fullName } = req.body;
+    const { username, email, password, fullName , schoolId } = req.body;
 
     //🔍 Check if superadmin already exists
     const superAdminExists = await AuthUser.findOne({
@@ -63,6 +63,7 @@ const createSuperAdmin = async (req, res) => {
       password: hashedPassword,
       fullName,
       role: "superadmin",
+      schoolId 
     });
 
     res.status(201).json({
