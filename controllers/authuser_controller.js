@@ -1,25 +1,24 @@
-const db = require('../models');
-const bcrypt = require('bcrypt');
+const db = require("../models");
+const bcrypt = require("bcrypt");
 
 const AuthUser = db.AuthUser;
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 
 /**
  * Generate JWT access token
  */
 const generateAccessToken = (user) => {
   return jwt.sign(
-    { 
-      id: user.id, 
+    {
+      id: user.id,
       email: user.email,
       username: user.username,
-      role: user.role 
-    }, 
-    JWT_SECRET,
-    
+      role: user.role,
+    },
+    JWT_SECRET
   );
 };
 
@@ -28,62 +27,65 @@ const generateAccessToken = (user) => {
  */
 const createAdminAccount = async (req, res) => {
   const { username, email, password, fullName } = req.body;
-  
+
   try {
     // Check if this is the first admin (no other admins exist)
-    const adminExists = await AuthUser.findOne({ where: { role: 'admin' } });
-    
+    const adminExists = await AuthUser.findOne({ where: { role: "admin" } });
+
     // Only allow if this is first admin or if request comes from an existing admin
-    if (adminExists && (!req.user || req.user.role !== 'admin')) {
-      return res.status(403).json({ message: 'Unauthorized to create admin account' });
+    if (adminExists && (!req.user || req.user.role !== "admin")) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized to create admin account" });
     }
-    
+
     if (!username || !email || !password || !fullName) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return res.status(400).json({ message: "All fields are required" });
     }
-    
+
     if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long" });
     }
-    
-    const existingUser = await AuthUser.findOne({ 
+
+    const existingUser = await AuthUser.findOne({
       where: {
-        [db.Sequelize.Op.or]: [
-          { email },
-          { username }
-        ]
-      }
+        [db.Sequelize.Op.or]: [{ email }, { username }],
+      },
     });
-    
+
     if (existingUser) {
-      return res.status(409).json({ message: 'Email or username already in use' });
+      return res
+        .status(409)
+        .json({ message: "Email or username already in use" });
     }
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     const newAdmin = await AuthUser.create({
       username,
       email,
       password: hashedPassword,
       fullName,
-      role: 'admin'
+      role: "admin",
     });
-    
+
     const userData = {
       id: newAdmin.id,
       username: newAdmin.username,
       email: newAdmin.email,
       fullName: newAdmin.fullName,
-      role: newAdmin.role
+      role: newAdmin.role,
     };
-    
+
     res.status(201).json({
-      message: 'Admin account created successfully',
-      user: userData
+      message: "Admin account created successfully",
+      user: userData,
     });
   } catch (err) {
-    console.error('Admin registration error:', err);
-    res.status(500).json({ message: 'Server error during admin registration' });
+    console.error("Admin registration error:", err);
+    res.status(500).json({ message: "Server error during admin registration" });
   }
 };
 
@@ -91,10 +93,10 @@ const createAdminAccount = async (req, res) => {
  * Teacher Registration Controller (Admin only)
  */
 const registerTeacher = async (req, res) => {
-  const { 
-    username, 
-    email, 
-    password, 
+  const {
+    username,
+    email,
+    password,
     fullName,
     userCode,
     address,
@@ -109,39 +111,44 @@ const registerTeacher = async (req, res) => {
     classInCharge,
     sectionId,
     appQrAutoAccept,
-    schoolId
+    schoolId,
   } = req.body;
-  
+
   try {
     // Check if requester is admin
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can register teachers' });
+    if (!req.user || req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Only admins can register teachers" });
     }
-    
+
     // Validate required fields
     if (!username || !password || !fullName) {
-      return res.status(400).json({ message: 'Username, password, and full name are required' });
+      return res
+        .status(400)
+        .json({ message: "Username, password, and full name are required" });
     }
-    
+
     if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long" });
     }
-    
-    const existingUser = await AuthUser.findOne({ 
+
+    const existingUser = await AuthUser.findOne({
       where: {
-        [db.Sequelize.Op.or]: [
-          { email: email || null },
-          { username }
-        ]
-      }
+        [db.Sequelize.Op.or]: [{ email: email || null }, { username }],
+      },
     });
-    
+
     if (existingUser) {
-      return res.status(409).json({ message: 'Email or username already in use' });
+      return res
+        .status(409)
+        .json({ message: "Email or username already in use" });
     }
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     const newTeacher = await AuthUser.create({
       username,
       email,
@@ -161,9 +168,9 @@ const registerTeacher = async (req, res) => {
       sectionId,
       appQrAutoAccept: appQrAutoAccept || false,
       schoolId,
-      role: 'teacher'
+      role: "teacher",
     });
-    
+
     const userData = {
       id: newTeacher.id,
       username: newTeacher.username,
@@ -171,16 +178,18 @@ const registerTeacher = async (req, res) => {
       fullName: newTeacher.fullName,
       userCode: newTeacher.userCode,
       role: newTeacher.role,
-      schoolId: newTeacher.schoolId
+      schoolId: newTeacher.schoolId,
     };
-    
+
     res.status(201).json({
-      message: 'Teacher account created successfully',
-      user: userData
+      message: "Teacher account created successfully",
+      user: userData,
     });
   } catch (err) {
-    console.error('Teacher registration error:', err);
-    res.status(500).json({ message: 'Server error during teacher registration' });
+    console.error("Teacher registration error:", err);
+    res
+      .status(500)
+      .json({ message: "Server error during teacher registration" });
   }
 };
 
@@ -188,10 +197,10 @@ const registerTeacher = async (req, res) => {
  * Student Registration Controller (Admin only)
  */
 const registerStudent = async (req, res) => {
-  const { 
-    username, 
-    email, 
-    password, 
+  const {
+    username,
+    email,
+    password,
     fullName,
     userCode,
     address,
@@ -204,39 +213,44 @@ const registerStudent = async (req, res) => {
     aadhar,
     sectionId,
     appQrAutoAccept,
-    schoolId
+    schoolId,
   } = req.body;
-  
+
   try {
     // Check if requester is admin
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Only admins can register students' });
+    if (!req.user || req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ message: "Only admins can register students" });
     }
-    
+
     // Validate required fields
     if (!username || !password || !fullName) {
-      return res.status(400).json({ message: 'Username, password, and full name are required' });
+      return res
+        .status(400)
+        .json({ message: "Username, password, and full name are required" });
     }
-    
+
     if (password.length < 8) {
-      return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long" });
     }
-    
-    const existingUser = await AuthUser.findOne({ 
+
+    const existingUser = await AuthUser.findOne({
       where: {
-        [db.Sequelize.Op.or]: [
-          { email: email || null },
-          { username }
-        ]
-      }
+        [db.Sequelize.Op.or]: [{ email: email || null }, { username }],
+      },
     });
-    
+
     if (existingUser) {
-      return res.status(409).json({ message: 'Email or username already in use' });
+      return res
+        .status(409)
+        .json({ message: "Email or username already in use" });
     }
-    
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     const newStudent = await AuthUser.create({
       username,
       email,
@@ -254,9 +268,9 @@ const registerStudent = async (req, res) => {
       sectionId,
       appQrAutoAccept: appQrAutoAccept || false,
       schoolId,
-      role: 'student'
+      role: "student",
     });
-    
+
     const userData = {
       id: newStudent.id,
       username: newStudent.username,
@@ -264,16 +278,18 @@ const registerStudent = async (req, res) => {
       fullName: newStudent.fullName,
       userCode: newStudent.userCode,
       role: newStudent.role,
-      schoolId: newStudent.schoolId
+      schoolId: newStudent.schoolId,
     };
-    
+
     res.status(201).json({
-      message: 'Student account created successfully',
-      user: userData
+      message: "Student account created successfully",
+      user: userData,
     });
   } catch (err) {
-    console.error('Student registration error:', err);
-    res.status(500).json({ message: 'Server error during student registration' });
+    console.error("Student registration error:", err);
+    res
+      .status(500)
+      .json({ message: "Server error during student registration" });
   }
 };
 const loginAdmin = async (req, res) => {
@@ -281,50 +297,51 @@ const loginAdmin = async (req, res) => {
 
   try {
     if (!username || !password) {
-      return res.status(400).json({ message: 'Username and password are required' });
+      return res
+        .status(400)
+        .json({ message: "Username and password are required" });
     }
 
-    const user = await AuthUser.findOne({ 
-      where: { 
-        [db.Sequelize.Op.or]: [
-          { username },
-          { email: username }
-        ],
-        role: ['admin'] // Only admin roles
-      } 
+    const user = await AuthUser.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [{ username }, { email: username }],
+        role: ["admin"], // Only admin roles
+      },
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid admin credentials' });
+      return res.status(401).json({ message: "Invalid admin credentials" });
     }
 
     if (!user.isActive) {
-      return res.status(403).json({ message: 'Account is disabled. Contact an administrator.' });
+      return res
+        .status(403)
+        .json({ message: "Account is disabled. Contact an administrator." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid admin credentials' });
+      return res.status(401).json({ message: "Invalid admin credentials" });
     }
 
     const accessToken = generateAccessToken(user);
+    console.log("accessToken : ", accessToken);
     await user.update({ lastLogin: new Date() });
 
     res.status(200).json({
-      message: 'Admin login successful',
+      message: "Admin login successful",
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
         fullName: user.fullName,
-        role: user.role
+        role: user.role,
       },
-      accessToken
+      accessToken,
     });
-
   } catch (err) {
-    console.error('Admin login error:', err);
-    res.status(500).json({ message: 'Server error during admin login' });
+    console.error("Admin login error:", err);
+    res.status(500).json({ message: "Server error during admin login" });
   }
 };
 
@@ -333,31 +350,34 @@ const loginTeacherOrStudent = async (req, res) => {
 
   try {
     if (!username || !password || !schoolId) {
-      return res.status(400).json({ message: 'Username, password, and schoolId are required' });
+      return res
+        .status(400)
+        .json({ message: "Username, password, and schoolId are required" });
     }
 
-    const user = await AuthUser.findOne({ 
-      where: { 
-        [db.Sequelize.Op.or]: [
-          { username },
-          { email: username }
-        ],
+    const user = await AuthUser.findOne({
+      where: {
+        [db.Sequelize.Op.or]: [{ username }, { email: username }],
         schoolId,
-        role: ['teacher', 'student']
-      } 
+        role: ["teacher", "student"],
+      },
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials or school ID' });
+      return res
+        .status(401)
+        .json({ message: "Invalid credentials or school ID" });
     }
 
     if (!user.isActive) {
-      return res.status(403).json({ message: 'Account is disabled. Contact your school admin.' });
+      return res
+        .status(403)
+        .json({ message: "Account is disabled. Contact your school admin." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const accessToken = generateAccessToken(user);
@@ -366,53 +386,66 @@ const loginTeacherOrStudent = async (req, res) => {
     // Get school details
     const school = await db.SchoolAll.findOne({
       where: { id: user.schoolId },
-      attributes: ['id', 'code', 'name', 'baseUrl', 'logoPath', 'bannerPath', 'paymentLink']
+      attributes: [
+        "id",
+        "code",
+        "name",
+        "baseUrl",
+        "logoPath",
+        "bannerPath",
+        "paymentLink",
+      ],
     });
-    
+
     const userData = user.toJSON();
     delete userData.password;
-  
-    
 
     res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       user: userData,
       school,
-      accessToken
+      accessToken,
     });
-
   } catch (err) {
-    console.error('Teacher/Student login error:', err);
-    res.status(500).json({ message: 'Server error during login' });
+    console.error("Teacher/Student login error:", err);
+    res.status(500).json({ message: "Server error during login" });
   }
 };
-
 
 /**
  * Logout Controller (client-side token removal)
  */
 const handleLogout = async (req, res) => {
-  res.status(200).json({ message: 'Logged out successfully' });
+  res.status(200).json({ message: "Logged out successfully" });
 };
 
 /**
  * Get all users (admin only)
  */
 const getAllUsers = async (req, res) => {
-  console.log('hellow i am runing');
+  console.log("hellow i am runing");
   try {
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
     }
-    
+
     const users = await AuthUser.findAll({
-      attributes: ['id', 'username', 'email', 'fullName', 'role', 'isActive', 'lastLogin', 'createdAt']
+      attributes: [
+        "id",
+        "username",
+        "email",
+        "fullName",
+        "role",
+        "isActive",
+        "lastLogin",
+        "createdAt",
+      ],
     });
-    
+
     res.status(200).json(users);
   } catch (err) {
-    console.error('Error fetching users:', err);
-    res.status(500).json({ message: 'Server error while fetching users' });
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Server error while fetching users" });
   }
 };
 
@@ -421,36 +454,42 @@ const getAllUsers = async (req, res) => {
  */
 const toggleUserStatus = async (req, res) => {
   const { userId } = req.params;
-  
+
   try {
-    if (!req.user || req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Admin access required' });
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
     }
-    
+
     const user = await AuthUser.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-    
+
     // Prevent disabling your own admin account
     if (user.id === req.user.id) {
-      return res.status(400).json({ message: 'Cannot modify your own admin status' });
+      return res
+        .status(400)
+        .json({ message: "Cannot modify your own admin status" });
     }
-    
+
     await user.update({ isActive: !user.isActive });
-    
-    res.status(200).json({ 
-      message: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`,
+
+    res.status(200).json({
+      message: `User ${
+        user.isActive ? "activated" : "deactivated"
+      } successfully`,
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
-        isActive: user.isActive
-      }
+        isActive: user.isActive,
+      },
     });
   } catch (err) {
-    console.error('Error toggling user status:', err);
-    res.status(500).json({ message: 'Server error while updating user status' });
+    console.error("Error toggling user status:", err);
+    res
+      .status(500)
+      .json({ message: "Server error while updating user status" });
   }
 };
 
@@ -462,5 +501,5 @@ module.exports = {
   loginAdmin,
   handleLogout,
   getAllUsers,
-  toggleUserStatus
+  toggleUserStatus,
 };

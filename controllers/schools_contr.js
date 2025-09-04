@@ -15,14 +15,14 @@ const createSchool = async (req, res) => {
     const school = await School.create(req.body);
     return res.status(201).json({
       success: true,
-      data: school
+      data: school,
     });
   } catch (error) {
-    console.error('Error creating school:', error);
+    console.error("Error creating school:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to create school',
-      error: error.message
+      message: "Failed to create school",
+      error: error.message,
     });
   }
 };
@@ -30,50 +30,134 @@ const createSchool = async (req, res) => {
 const getSchoolByCode = async (req, res) => {
   try {
     const { code } = req.params;
-    
+
     const school = await School.findOne({
       where: { code },
       include: [
         {
           model: Session,
-          as: 'sessions',
+          as: "sessions",
           where: { isActive: true },
-          required: false
+          required: false,
         },
         {
           model: Class,
-          as: 'classes',
+          as: "classes",
           where: { isActive: true },
           required: false,
           include: [
             {
               model: Section,
-              as: 'sections',
+              as: "sections",
               where: { isActive: true },
-              required: false
-            }
-          ]
-        }
-      ]
+              required: false,
+            },
+          ],
+        },
+      ],
     });
 
     if (!school) {
       return res.status(404).json({
         success: false,
-        message: 'School not found'
+        message: "School not found",
       });
     }
 
     return res.status(200).json({
       success: true,
-      data: school
+      data: school,
     });
   } catch (error) {
-    console.error('Error fetching school:', error);
+    console.error("Error fetching school:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch school',
-      error: error.message
+      message: "Failed to fetch school",
+      error: error.message,
+    });
+  }
+};
+// delete school
+const deleteSchoolByCode = async (req, res) => {
+  try {
+    const { schoolCode } = req.params;
+
+    const deletedSchool = await School.destroy({
+      where: { code: schoolCode }, // Corrected line
+    });
+    if (!deletedSchool) {
+      return res.status(404).json({
+        success: false,
+        message: "School not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: deletedSchool,
+    });
+  } catch (error) {
+    console.error("Error fetching school:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch school",
+      error: error.message,
+    });
+  }
+};
+
+//update school info
+const updateSchoolByCode = async (req, res) => {
+  const { schoolCode } = req.params;
+  const {
+    name,
+    baseUrl,
+    logoPath,
+    bannerPath,
+    paymentLink,
+    address,
+    phone,
+    email,
+    principalName,
+    establishedYear,
+  } = req.body;
+
+  try {
+    const [rowsUpdated] = await School.update(
+      {
+        name,
+        baseUrl,
+        logoPath,
+        bannerPath,
+        paymentLink,
+        address,
+        phone,
+        email,
+        principalName,
+        establishedYear,
+      },
+      {
+        where: {
+          code: schoolCode,
+        },
+      }
+    );
+    if (rowsUpdated === 1) {
+      return res.status(200).json({
+        success: true,
+        message: "School updated successfully.",
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: "School not found or no changes were made.",
+      });
+    }
+  } catch (error) {
+    console.error("Error updating school:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update school due to a server error.",
+      error: error.message,
     });
   }
 };
@@ -86,13 +170,13 @@ const createSession = async (req, res) => {
 
     // Verify school exists
     const school = await School.findOne({
-      where: { code: schoolCode }
+      where: { code: schoolCode },
     });
 
     if (!school) {
       return res.status(404).json({
         success: false,
-        message: 'School not found'
+        message: "School not found",
       });
     }
 
@@ -109,14 +193,14 @@ const createSession = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      data: session
+      data: session,
     });
   } catch (error) {
-    console.error('Error creating session:', error);
+    console.error("Error creating session:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to create session',
-      error: error.message
+      message: "Failed to create session",
+      error: error.message,
     });
   }
 };
@@ -127,19 +211,19 @@ const getSessionsBySchool = async (req, res) => {
 
     const sessions = await Session.findAll({
       where: { schoolCode },
-      order: [['createdAt', 'DESC']]
+      order: [["createdAt", "DESC"]],
     });
 
     return res.status(200).json({
       success: true,
-      data: sessions
+      data: sessions,
     });
   } catch (error) {
-    console.error('Error fetching sessions:', error);
+    console.error("Error fetching sessions:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch sessions',
-      error: error.message
+      message: "Failed to fetch sessions",
+      error: error.message,
     });
   }
 };
@@ -154,14 +238,14 @@ const createClass = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      data: newClass
+      data: newClass,
     });
   } catch (error) {
-    console.error('Error creating class:', error);
+    console.error("Error creating class:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to create class',
-      error: error.message
+      message: "Failed to create class",
+      error: error.message,
     });
   }
 };
@@ -175,31 +259,34 @@ const getClassesBySchool = async (req, res) => {
       include: [
         {
           model: Section,
-          as: 'sections',
+          as: "sections",
           where: { isActive: true },
           required: false,
           include: [
             {
               model: AuthUser,
-              as: 'classTeacher',
-              attributes: ['id', 'fullName', 'email']
-            }
-          ]
-        }
+              as: "classTeacher",
+              attributes: ["id", "fullName", "email"],
+            },
+          ],
+        },
       ],
-      order: [['level', 'ASC'], [{ model: Section, as: 'sections' }, 'name', 'ASC']]
+      order: [
+        ["level", "ASC"],
+        [{ model: Section, as: "sections" }, "name", "ASC"],
+      ],
     });
 
     return res.status(200).json({
       success: true,
-      data: classes
+      data: classes,
     });
   } catch (error) {
-    console.error('Error fetching classes:', error);
+    console.error("Error fetching classes:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch classes',
-      error: error.message
+      message: "Failed to fetch classes",
+      error: error.message,
     });
   }
 };
@@ -212,13 +299,13 @@ const createSection = async (req, res) => {
 
     // Verify class exists
     const classExists = await Class.findOne({
-      where: { id: classId, schoolCode }
+      where: { id: classId, schoolCode },
     });
 
     if (!classExists) {
       return res.status(404).json({
         success: false,
-        message: 'Class not found'
+        message: "Class not found",
       });
     }
 
@@ -226,14 +313,14 @@ const createSection = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      data: section
+      data: section,
     });
   } catch (error) {
-    console.error('Error creating section:', error);
+    console.error("Error creating section:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to create section',
-      error: error.message
+      message: "Failed to create section",
+      error: error.message,
     });
   }
 };
@@ -247,28 +334,28 @@ const getSectionsByClass = async (req, res) => {
       include: [
         {
           model: Class,
-          as: 'class',
-          attributes: ['name', 'level']
+          as: "class",
+          attributes: ["name", "level"],
         },
         {
           model: AuthUser,
-          as: 'classTeacher',
-          attributes: ['id', 'fullName', 'email', 'mobileNumber']
-        }
+          as: "classTeacher",
+          attributes: ["id", "fullName", "email", "mobileNumber"],
+        },
       ],
-      order: [['name', 'ASC']]
+      order: [["name", "ASC"]],
     });
 
     return res.status(200).json({
       success: true,
-      data: sections
+      data: sections,
     });
   } catch (error) {
-    console.error('Error fetching sections:', error);
+    console.error("Error fetching sections:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch sections',
-      error: error.message
+      message: "Failed to fetch sections",
+      error: error.message,
     });
   }
 };
@@ -277,20 +364,27 @@ const getSectionsByClass = async (req, res) => {
 const enrollStudent = async (req, res) => {
   try {
     const { schoolCode } = req.params;
-    const { studentId, sessionId, classId, sectionId, rollNumber, admissionNumber } = req.body;
+    const {
+      studentId,
+      sessionId,
+      classId,
+      sectionId,
+      rollNumber,
+      admissionNumber,
+    } = req.body;
 
     // Verify all entities exist
     const [student, session, classExists, section] = await Promise.all([
       AuthUser.findByPk(studentId),
       Session.findByPk(sessionId),
       Class.findByPk(classId),
-      Section.findByPk(sectionId)
+      Section.findByPk(sectionId),
     ]);
 
     if (!student || !session || !classExists || !section) {
       return res.status(404).json({
         success: false,
-        message: 'One or more entities not found'
+        message: "One or more entities not found",
       });
     }
 
@@ -300,44 +394,47 @@ const enrollStudent = async (req, res) => {
       classId,
       sectionId,
       rollNumber,
-      admissionNumber
+      admissionNumber,
     });
 
-    const enrollmentWithDetails = await StudentEnrollment.findByPk(enrollment.id, {
-      include: [
-        {
-          model: AuthUser,
-          as: 'student',
-          attributes: ['id', 'fullName', 'email', 'mobileNumber']
-        },
-        {
-          model: Session,
-          as: 'session',
-          attributes: ['id', 'name', 'startDate', 'endDate']
-        },
-        {
-          model: Class,
-          as: 'class',
-          attributes: ['id', 'name', 'level']
-        },
-        {
-          model: Section,
-          as: 'section',
-          attributes: ['id', 'name', 'room']
-        }
-      ]
-    });
+    const enrollmentWithDetails = await StudentEnrollment.findByPk(
+      enrollment.id,
+      {
+        include: [
+          {
+            model: AuthUser,
+            as: "student",
+            attributes: ["id", "fullName", "email", "mobileNumber"],
+          },
+          {
+            model: Session,
+            as: "session",
+            attributes: ["id", "name", "startDate", "endDate"],
+          },
+          {
+            model: Class,
+            as: "class",
+            attributes: ["id", "name", "level"],
+          },
+          {
+            model: Section,
+            as: "section",
+            attributes: ["id", "name", "room"],
+          },
+        ],
+      }
+    );
 
     return res.status(201).json({
       success: true,
-      data: enrollmentWithDetails
+      data: enrollmentWithDetails,
     });
   } catch (error) {
-    console.error('Error enrolling student:', error);
+    console.error("Error enrolling student:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to enroll student',
-      error: error.message
+      message: "Failed to enroll student",
+      error: error.message,
     });
   }
 };
@@ -357,28 +454,35 @@ const getStudentsBySection = async (req, res) => {
       include: [
         {
           model: AuthUser,
-          as: 'student',
-          attributes: ['id', 'fullName', 'email', 'mobileNumber', 'parentName', 'parentPhone']
+          as: "student",
+          attributes: [
+            "id",
+            "fullName",
+            "email",
+            "mobileNumber",
+            "parentName",
+            "parentPhone",
+          ],
         },
         {
           model: Session,
-          as: 'session',
-          attributes: ['id', 'name']
-        }
+          as: "session",
+          attributes: ["id", "name"],
+        },
       ],
-      order: [['rollNumber', 'ASC']]
+      order: [["rollNumber", "ASC"]],
     });
 
     return res.status(200).json({
       success: true,
-      data: students
+      data: students,
     });
   } catch (error) {
-    console.error('Error fetching students:', error);
+    console.error("Error fetching students:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch students',
-      error: error.message
+      message: "Failed to fetch students",
+      error: error.message,
     });
   }
 };
@@ -390,74 +494,81 @@ const getCompleteSchoolStructure = async (req, res) => {
     const { sessionId } = req.query;
 
     const whereCondition = { code: schoolCode };
-    
+
     const school = await School.findOne({
       where: whereCondition,
       include: [
         {
           model: Session,
-          as: 'sessions',
+          as: "sessions",
           where: sessionId ? { id: sessionId } : { isActive: true },
-          required: false
+          required: false,
         },
         {
           model: Class,
-          as: 'classes',
+          as: "classes",
           where: { isActive: true },
           required: false,
           include: [
             {
               model: Section,
-              as: 'sections',
+              as: "sections",
               where: { isActive: true },
               required: false,
               include: [
                 {
                   model: AuthUser,
-                  as: 'classTeacher',
-                  attributes: ['id', 'fullName', 'email']
+                  as: "classTeacher",
+                  attributes: ["id", "fullName", "email"],
                 },
                 {
                   model: StudentEnrollment,
-                  as: 'students',
-                  where: sessionId ? { sessionId, isActive: true } : { isActive: true },
+                  as: "students",
+                  where: sessionId
+                    ? { sessionId, isActive: true }
+                    : { isActive: true },
                   required: false,
                   include: [
                     {
                       model: AuthUser,
-                      as: 'student',
-                      attributes: ['id', 'fullName', 'rollNumber']
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
+                      as: "student",
+                      attributes: ["id", "fullName", "rollNumber"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       ],
       order: [
-        [{ model: Class, as: 'classes' }, 'level', 'ASC'],
-        [{ model: Class, as: 'classes' }, { model: Section, as: 'sections' }, 'name', 'ASC']
-      ]
+        [{ model: Class, as: "classes" }, "level", "ASC"],
+        [
+          { model: Class, as: "classes" },
+          { model: Section, as: "sections" },
+          "name",
+          "ASC",
+        ],
+      ],
     });
 
     if (!school) {
       return res.status(404).json({
         success: false,
-        message: 'School not found'
+        message: "School not found",
       });
     }
 
     return res.status(200).json({
       success: true,
-      data: school
+      data: school,
     });
   } catch (error) {
-    console.error('Error fetching complete school structure:', error);
+    console.error("Error fetching complete school structure:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch school structure',
-      error: error.message
+      message: "Failed to fetch school structure",
+      error: error.message,
     });
   }
 };
@@ -466,23 +577,25 @@ module.exports = {
   // School
   createSchool,
   getSchoolByCode,
-  
+  deleteSchoolByCode,
+  updateSchoolByCode,
+
   // Session
   createSession,
   getSessionsBySchool,
-  
+
   // Class
   createClass,
   getClassesBySchool,
-  
+
   // Section
   createSection,
   getSectionsByClass,
-  
+
   // Student Enrollment
   enrollStudent,
   getStudentsBySection,
-  
+
   // Complete Structure
-  getCompleteSchoolStructure
+  getCompleteSchoolStructure,
 };

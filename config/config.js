@@ -25,7 +25,7 @@ module.exports = {
         require: true,
         rejectUnauthorized: false
       }
-    }
+    } 
   },
   production: {
     username: process.env.DB_USERNAME,
