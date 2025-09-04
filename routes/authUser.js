@@ -21,7 +21,12 @@ router.use(verifyToken);
 router.use(isActiveUser);
 
 // Admin-only routes
-router.post("/register/admin", isAdmin, authController.createAdminAccount);
+router.post(
+  "/register/admin",
+  verifyToken,
+  isAdmin,
+  authController.createAdminAccount
+);
 router.post("/register/teacher", isAdmin, authController.registerTeacher);
 router.post("/register/student", isAdmin, authController.registerStudent);
 
