@@ -26,6 +26,7 @@ const generateAccessToken = (user) => {
 /**
  * Admin Registration Controller (First admin or superadmin can create this)
  */
+////checking ke liye hai
 const createSuperAdmin = async (req, res) => {
   try {
     const { username, email, password, fullName } = req.body;
