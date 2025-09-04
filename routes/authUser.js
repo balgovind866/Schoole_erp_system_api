@@ -1,41 +1,38 @@
+
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authuser_controller");
-const controller = require("../controllers/schools_contr");
 const {
   verifyToken,
   isAdmin,
   isActiveUser,
 } = require("../middleware/authentication");
 
-// Public routes
+// ========== PUBLIC ROUTES (No authentication required) ==========
+// Login routes
 router.post("/login", authController.loginTeacherOrStudent);
 router.post("/login/admin", authController.loginAdmin);
+
+// Logout route
 router.post("/logout", authController.handleLogout);
 
-// First admin creation (only works when no admin exists)
-router.post("/admin/setup", authController.createAdminAccount);
+// Setup routes (first time setup - no auth needed)
+router.post("/admin/setup", authController.createSuperAdmin);
 
-// Protected admin routes - require authentication
-router.use(verifyToken);
-router.use(isActiveUser);
+// First admin creation (no auth needed when no admin exists)
+router.post("/register/admin", authController.createAdminAccount);
+
+// ========== PROTECTED ROUTES (Authentication required) ==========
+// Helper middleware array
+const adminAuth = [verifyToken, isActiveUser, isAdmin];
 
 // Admin-only routes
-router.post(
-  "/register/admin",
-  verifyToken,
-  isAdmin,
-  authController.createAdminAccount
-);
-router.post("/register/teacher", isAdmin, authController.registerTeacher);
-router.post("/register/student", isAdmin, authController.registerStudent);
+router.post("/register/teacher", adminAuth, authController.registerTeacher);
+router.post("/register/student", adminAuth, authController.registerStudent);
+router.get("/users", adminAuth, authController.getAllUsers);
+router.patch("/users/:userId/toggle-status", adminAuth, authController.toggleUserStatus);
 
-// FIXED: Remove the console.log from the route handler
-router.get("/users", isAdmin, authController.getAllUsers);
-router.patch(
-  "/users/:userId/toggle-status",
-  isAdmin,
-  authController.toggleUserStatus
-);
+// Protected admin creation route (for existing admins creating new admins)
+router.post("/admin/create", adminAuth, authController.createAdminAccount);
 
 module.exports = router;

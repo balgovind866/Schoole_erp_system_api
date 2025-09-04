@@ -22,9 +22,10 @@ const verifyToken = (req, res, next) => {
       username: decoded.username,
       role: decoded.role,
     };
-    console.log("verifyToken");
+    console.log("Token verified for user:", decoded.username);
     next();
   } catch (err) {
+    console.error("Token verification error:", err.message);
     return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
@@ -33,7 +34,7 @@ const verifyToken = (req, res, next) => {
  * Allow only admin users
  */
 const isAdmin = (req, res, next) => {
-  if (!req.user || req.user.role !== "admin") {
+  if (!req.user || !["admin", "superadmin"].includes(req.user.role)) {
     return res.status(403).json({ message: "Admin access required" });
   }
   next();
@@ -53,7 +54,7 @@ const isTeacher = (req, res, next) => {
  * Allow only admin or teacher users
  */
 const isAdminOrTeacher = (req, res, next) => {
-  if (!req.user || (req.user.role !== "admin" && req.user.role !== "teacher")) {
+  if (!req.user || !["admin", "superadmin", "teacher"].includes(req.user.role)) {
     return res
       .status(403)
       .json({ message: "Admin or teacher access required" });
@@ -114,7 +115,7 @@ const isOwnerOrAdmin = (resourceModel) => {
     try {
       if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-      if (req.user.role === "admin") return next();
+      if (["admin", "superadmin"].includes(req.user.role)) return next();
 
       const resourceId = req.params.id;
       if (!resourceId)

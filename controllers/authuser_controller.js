@@ -1,3 +1,4 @@
+
 const db = require("../models");
 const bcrypt = require("bcrypt");
 
@@ -25,6 +26,61 @@ const generateAccessToken = (user) => {
 /**
  * Admin Registration Controller (First admin or superadmin can create this)
  */
+const createSuperAdmin = async (req, res) => {
+  try {
+    const { username, email, password, fullName } = req.body;
+
+    //🔍 Check if superadmin already exists
+    const superAdminExists = await AuthUser.findOne({
+      where: { role: "superadmin" },
+    });
+
+    if (superAdminExists) {
+      return res
+        .status(403)
+        .json({ message: "Superadmin already exists. You cannot create again." });
+    }
+
+    // ✅ Validate input fields
+    if (!username || !email || !password || !fullName) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (password.length < 8) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters long" });
+    }
+
+    // ✅ Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ✅ Create superadmin
+    const newSuperAdmin = await AuthUser.create({
+      username,
+      email,
+      password: hashedPassword,
+      fullName,
+      role: "superadmin",
+    });
+
+    res.status(201).json({
+      message: "Superadmin created successfully",
+      user: {
+        id: newSuperAdmin.id,
+        username: newSuperAdmin.username,
+        email: newSuperAdmin.email,
+        fullName: newSuperAdmin.fullName,
+        role: newSuperAdmin.role,
+      },
+    });
+  } catch (error) {
+    console.error("Superadmin creation error:", error);
+    res
+      .status(500)
+      .json({ message: "Server error during superadmin creation" });
+  }
+};
 const createAdminAccount = async (req, res) => {
   const { username, email, password, fullName } = req.body;
 
@@ -502,4 +558,5 @@ module.exports = {
   handleLogout,
   getAllUsers,
   toggleUserStatus,
+  createSuperAdmin,
 };
