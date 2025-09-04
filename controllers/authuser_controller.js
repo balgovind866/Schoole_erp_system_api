@@ -84,7 +84,7 @@ const createSuperAdmin = async (req, res) => {
   }
 };
 const createAdminAccount = async (req, res) => {
-  const { username, email, password, fullName } = req.body;
+  const { username, email, password, fullName , schoolId} = req.body;
 
   try {
     // Check if this is the first admin (no other admins exist)
@@ -127,6 +127,7 @@ const createAdminAccount = async (req, res) => {
       password: hashedPassword,
       fullName,
       role: "admin",
+      schoolId
     });
 
     const userData = {
