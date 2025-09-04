@@ -6,8 +6,14 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     name: DataTypes.STRING,
-    start: DataTypes.DATE,
-    enddate: DataTypes.DATE,
+      startDate: {
+      type: DataTypes.DATE,
+      field: "start"   // DB column is "start"
+    },
+     endDate: {
+      type: DataTypes.DATE,
+      field: "enddate" // DB column is "enddate"
+    },
     isActive: DataTypes.BOOLEAN
   });
   
