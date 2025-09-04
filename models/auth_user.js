@@ -85,7 +85,7 @@ module.exports = (sequelize, DataTypes) => {
 
   AuthUser.associate = (models) => {
     // Association with school
-    AuthUser.belongsTo(models.SchoolAll, {
+    AuthUser.belongsTo(models.SchoolAll,{
       foreignKey: 'schoolId',
       as: 'school'
     });
