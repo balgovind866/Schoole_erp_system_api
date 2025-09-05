@@ -25,7 +25,7 @@ router.use(isActiveUser);
 // Class Management
 router.post("/:schoolCode/classes", controller.createClass);
 router.get("/:schoolCode/classes", controller.getClassesBySchool);
-
+// router.get('/:schoolCode/sessions/:sessionId/classes', controller.getClassesBySchoolAndSession);
 
 
 module.exports = router;
