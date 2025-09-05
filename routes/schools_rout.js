@@ -32,20 +32,7 @@ router.post("/create", isAdmin, controller.createSchool);
 router.put("/:schoolCode", isAdmin, controller.updateSchoolByCode); //update school info.
 router.delete("/:schoolCode", isAdmin, controller.deleteSchoolByCode); //delete a school.
 
-// Session Management
-router.post("/:schoolCode/sessions", controller.createSession);
-router.get("/:schoolCode/sessions", controller.getSessionsBySchool);
 
-// Class Management
-router.post("/:schoolCode/classes", controller.createClass);
-router.get("/:schoolCode/classes", controller.getClassesBySchool);
 
-// Section Management
-router.post("/:schoolCode/classes/:classId/sections", controller.createSection);
-router.get("/classes/:classId/sections", controller.getSectionsByClass);
-
-// Student Enrollment
-router.post("/:schoolCode/enrollments", controller.enrollStudent);
-router.get("/sections/:sectionId/students", controller.getStudentsBySection);
 
 module.exports = router;
