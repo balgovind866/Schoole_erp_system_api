@@ -27,6 +27,16 @@ module.exports = {
       country: {
         type: Sequelize.STRING,
       },
+      studentId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "auth_users",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

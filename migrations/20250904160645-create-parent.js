@@ -9,6 +9,16 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
+      studentId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "auth_users",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      },
       firstName: {
         type: Sequelize.STRING,
       },

@@ -11,6 +11,13 @@ module.exports = {
       },
       studentId: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: "auth_users",
+          key: "id",
+        },
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
       },
       documentName: {
         type: Sequelize.STRING,
