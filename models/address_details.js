@@ -1,7 +1,8 @@
 "use strict";
+
 module.exports = (sequelize, DataTypes) => {
-  const Parent = sequelize.define(
-    "Parent",
+  const AddressDetail = sequelize.define(
+    "AddressDetail",
     {
       id: {
         allowNull: false,
@@ -9,40 +10,43 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      firstName: {
+      address1: {
         type: DataTypes.STRING,
       },
-      middleName: {
+      address2: {
         type: DataTypes.STRING,
       },
-      lastName: {
+      city: {
         type: DataTypes.STRING,
       },
-      relationship: {
+      state: {
         type: DataTypes.STRING,
       },
-      email: {
-        type: DataTypes.STRING,
+      zipCode: {
+        type: DataTypes.STRING, // string to allow leading zeros
       },
-      phoneNumber: {
+      country: {
         type: DataTypes.STRING,
       },
       studentId: {
         type: DataTypes.INTEGER,
+        allowNull: false,
       },
     },
     {
-      tableName: "parents",
-      timestamps: true,
+      tableName: "address_details", // matches your migration
+      timestamps: true, // createdAt, updatedAt
     }
   );
 
-  Parent.associate = (models) => {
-    Parent.belongsTo(models.AuthUser, {
+  AddressDetail.associate = (models) => {
+    AddressDetail.belongsTo(models.AuthUser, {
       foreignKey: "studentId",
       as: "student",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     });
   };
 
-  return Parent;
+  return AddressDetail;
 };
