@@ -1,4 +1,3 @@
-
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authuser_controller");
@@ -29,8 +28,34 @@ const adminAuth = [verifyToken, isActiveUser, isAdmin];
 // Admin-only routes
 router.post("/register/teacher", adminAuth, authController.registerTeacher);
 router.post("/register/student", adminAuth, authController.registerStudent);
+//parents routes (CRUD)
+router.get(
+  "/student/:studentId/parents",
+  adminAuth,
+  authController.getParentsByStudentId
+);
+router.post(
+  "/register/student/:studentId/parent",
+  adminAuth,
+  authController.addParent
+);
+router.put(
+  "/student/:studentId/parent/:parentId",
+  adminAuth,
+  authController.updateParent
+);
+router.delete(
+  "/student/:studentId/parent/:parentId",
+  adminAuth,
+  authController.deleteParent
+);
+
 router.get("/users", adminAuth, authController.getAllUsers);
-router.patch("/users/:userId/toggle-status", adminAuth, authController.toggleUserStatus);
+router.patch(
+  "/users/:userId/toggle-status",
+  adminAuth,
+  authController.toggleUserStatus
+);
 
 // Protected admin creation route (for existing admins creating new admins)
 router.post("/admin/create", adminAuth, authController.createAdminAccount);

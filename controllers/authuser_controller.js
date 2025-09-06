@@ -1,8 +1,8 @@
-
 const db = require("../models");
 const bcrypt = require("bcrypt");
 
 const AuthUser = db.AuthUser;
+const Parent = db.Parent;
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -29,7 +29,7 @@ const generateAccessToken = (user) => {
 ////checking ke liye hai
 const createSuperAdmin = async (req, res) => {
   try {
-    const { username, email, password, fullName , schoolId } = req.body;
+    const { username, email, password, fullName, schoolId } = req.body;
 
     //🔍 Check if superadmin already exists
     const superAdminExists = await AuthUser.findOne({
@@ -37,9 +37,9 @@ const createSuperAdmin = async (req, res) => {
     });
 
     if (superAdminExists) {
-      return res
-        .status(403)
-        .json({ message: "Superadmin already exists. You cannot create again." });
+      return res.status(403).json({
+        message: "Superadmin already exists. You cannot create again.",
+      });
     }
 
     // ✅ Validate input fields
@@ -63,7 +63,7 @@ const createSuperAdmin = async (req, res) => {
       password: hashedPassword,
       fullName,
       role: "superadmin",
- schoolId
+      schoolId,
     });
 
     res.status(201).json({
@@ -84,7 +84,7 @@ const createSuperAdmin = async (req, res) => {
   }
 };
 const createAdminAccount = async (req, res) => {
-  const { username, email, password, fullName , schoolId} = req.body;
+  const { username, email, password, fullName, schoolId } = req.body;
 
   try {
     // Check if this is the first admin (no other admins exist)
@@ -127,7 +127,7 @@ const createAdminAccount = async (req, res) => {
       password: hashedPassword,
       fullName,
       role: "admin",
-      schoolId
+      schoolId,
     });
 
     const userData = {
@@ -351,6 +351,155 @@ const registerStudent = async (req, res) => {
       .json({ message: "Server error during student registration" });
   }
 };
+//add parent
+const addParent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const student = await AuthUser.findOne({ where: { id: studentId } });
+
+    if (!student) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Student does not exist.",
+      });
+    }
+
+    const {
+      firstName,
+      middleName,
+      lastName,
+      relationship,
+      email,
+      phoneNumber,
+    } = req.body;
+
+    const parent = await Parent.create({
+      firstName,
+      middleName,
+      lastName,
+      relationship,
+      email,
+      phoneNumber,
+      studentId,
+    });
+
+    if (!parent) {
+      return res.status(400).json({
+        status: "fail",
+        message: "Parent info could not be saved",
+      });
+    }
+
+    return res.status(201).json({
+      status: "success",
+      data: parent, // returning parent for frontend use
+    });
+  } catch (err) {
+    console.error("Could not add parent:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Server error while adding parent info.",
+    });
+  }
+};
+//get parent
+const getParentsByStudentId = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const parents = await Parent.findAll({
+      where: { studentId },
+    });
+
+    if (!parents || parents.length === 0) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No parents found for this student.",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: parents,
+    });
+  } catch (err) {
+    console.error("Could not fetch parents:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while fetching parent info.",
+    });
+  }
+};
+//update parent
+const updateParent = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+
+    const parent = await Parent.findByPk(parentId);
+    if (!parent) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Parent not found.",
+      });
+    }
+    const {
+      firstName,
+      middleName,
+      lastName,
+      relationship,
+      email,
+      phoneNumber,
+    } = req.body;
+
+    await parent.update({
+      firstName,
+      middleName,
+      lastName,
+      relationship,
+      email,
+      phoneNumber,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: parent,
+    });
+  } catch (err) {
+    console.error("Could not update parent:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while updating parent info.",
+    });
+  }
+};
+//delete parent
+const deleteParent = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+
+    const parent = await Parent.findByPk(parentId);
+    if (!parent) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Parent not found.",
+      });
+    }
+
+    await parent.destroy();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Parent deleted successfully.",
+    });
+  } catch (err) {
+    console.error("Could not delete parent:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while deleting parent info.",
+    });
+  }
+};
+
 const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
 
@@ -562,4 +711,8 @@ module.exports = {
   getAllUsers,
   toggleUserStatus,
   createSuperAdmin,
+  addParent,
+  getParentsByStudentId,
+  updateParent,
+  deleteParent,
 };
