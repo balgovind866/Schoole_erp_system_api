@@ -39,6 +39,11 @@ router.post(
   adminAuth,
   authController.addParent
 );
+router.put(
+  "/student/:studentId/parent/:parentId",
+  adminAuth,
+  authController.updateParent
+);
 
 router.get("/users", adminAuth, authController.getAllUsers);
 router.patch(

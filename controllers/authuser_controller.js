@@ -430,6 +430,48 @@ const getParentsByStudentId = async (req, res) => {
     });
   }
 };
+//update parent
+const updateParent = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+
+    const parent = await Parent.findByPk(parentId);
+    if (!parent) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Parent not found.",
+      });
+    }
+    const {
+      firstName,
+      middleName,
+      lastName,
+      relationship,
+      email,
+      phoneNumber,
+    } = req.body;
+
+    await parent.update({
+      firstName,
+      middleName,
+      lastName,
+      relationship,
+      email,
+      phoneNumber,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      data: parent,
+    });
+  } catch (err) {
+    console.error("Could not update parent:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while updating parent info.",
+    });
+  }
+};
 
 const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
@@ -644,4 +686,5 @@ module.exports = {
   createSuperAdmin,
   addParent,
   getParentsByStudentId,
+  updateParent,
 };
