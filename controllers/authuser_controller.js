@@ -402,6 +402,34 @@ const addParent = async (req, res) => {
     });
   }
 };
+//get parent
+const getParentsByStudentId = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const parents = await Parent.findAll({
+      where: { studentId },
+    });
+
+    if (!parents || parents.length === 0) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No parents found for this student.",
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      data: parents,
+    });
+  } catch (err) {
+    console.error("Could not fetch parents:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while fetching parent info.",
+    });
+  }
+};
 
 const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
@@ -615,4 +643,5 @@ module.exports = {
   toggleUserStatus,
   createSuperAdmin,
   addParent,
+  getParentsByStudentId,
 };

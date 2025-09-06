@@ -29,6 +29,11 @@ const adminAuth = [verifyToken, isActiveUser, isAdmin];
 router.post("/register/teacher", adminAuth, authController.registerTeacher);
 router.post("/register/student", adminAuth, authController.registerStudent);
 //parents CRUD routes
+router.get(
+  "/student/:studentId/parents",
+  adminAuth,
+  authController.getParentsByStudentId
+);
 router.post(
   "/register/student/:studentId/parent",
   adminAuth,
