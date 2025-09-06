@@ -28,7 +28,7 @@ const adminAuth = [verifyToken, isActiveUser, isAdmin];
 // Admin-only routes
 router.post("/register/teacher", adminAuth, authController.registerTeacher);
 router.post("/register/student", adminAuth, authController.registerStudent);
-//parents CRUD routes
+//parents routes (CRUD)
 router.get(
   "/student/:studentId/parents",
   adminAuth,
@@ -43,6 +43,11 @@ router.put(
   "/student/:studentId/parent/:parentId",
   adminAuth,
   authController.updateParent
+);
+router.delete(
+  "/student/:studentId/parent/:parentId",
+  adminAuth,
+  authController.deleteParent
 );
 
 router.get("/users", adminAuth, authController.getAllUsers);

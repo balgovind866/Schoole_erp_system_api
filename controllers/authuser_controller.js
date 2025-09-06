@@ -472,6 +472,33 @@ const updateParent = async (req, res) => {
     });
   }
 };
+//delete parent
+const deleteParent = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+
+    const parent = await Parent.findByPk(parentId);
+    if (!parent) {
+      return res.status(404).json({
+        status: "fail",
+        message: "Parent not found.",
+      });
+    }
+
+    await parent.destroy();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Parent deleted successfully.",
+    });
+  } catch (err) {
+    console.error("Could not delete parent:", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Server error while deleting parent info.",
+    });
+  }
+};
 
 const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
@@ -687,4 +714,5 @@ module.exports = {
   addParent,
   getParentsByStudentId,
   updateParent,
+  deleteParent,
 };
